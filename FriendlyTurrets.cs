@@ -72,15 +72,35 @@ namespace FriendlyTurrets
             }
         }
 
-        public static Character FindClosestPlayerUnfriendlyCreature(Transform me, Vector3 eyePoint, float hearRange, float viewRange, float viewAngle, bool alerted, bool mistVision)
+        public static Character FindClosestPlayerUnfriendlyCreature(Transform me, Vector3 eyePoint, float hearRange, float viewRange, float viewAngle, bool alerted, bool mistVision, bool includePlayers = true, bool includeTamed = true, List<Character> onlyTargets = null)
         {
             List<Character> allCharacters = Character.GetAllCharacters();
             Character character = null;
             float num = 99999f;
             foreach (Character item in allCharacters)
             {
+                if (onlyTargets != null && onlyTargets.Count > 0)
+                {
+                    bool flag = false;
+                    foreach (Character onlyTarget in onlyTargets)
+                    {
+                        if (item.m_name == onlyTarget.m_name)
+                        {
+                            flag = true;
+                            break;
+                        }
+                    }
+
+                    if (!flag)
+                    {
+                        continue;
+                    }
+                }
+
                 if (!IsValidTarget(item, false))
+                {
                     continue;
+                }
 
                 BaseAI baseAI = item.GetBaseAI();
                 if ((!(baseAI != null) || !baseAI.IsSleeping()) && BaseAI.CanSenseTarget(me, eyePoint, hearRange, viewRange, viewAngle, alerted, mistVision, item))
@@ -93,9 +113,6 @@ namespace FriendlyTurrets
                     }
                 }
             }
-
-            if (character != null)
-                logger.LogInfo($"Found target: {character}");
 
             return character;
         }
